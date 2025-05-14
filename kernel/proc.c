@@ -5,6 +5,9 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "peterson.h"
+
+extern struct petersonlock peterson_locks[MAX_PETERSON_LOCKS];
 
 struct cpu cpus[NCPU];
 

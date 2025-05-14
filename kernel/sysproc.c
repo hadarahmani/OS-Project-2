@@ -5,6 +5,78 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "syscall.h"
+#include "peterson.h"
+
+
+extern struct petersonlock peterson_locks[MAX_PETERSON_LOCKS];
+
+uint64
+sys_peterson_create(void)
+{
+  for (int i = 0; i < MAX_PETERSON_LOCKS; i++) {
+    if (!peterson_locks[i].active) {
+      peterson_locks[i].active = 1;
+      __sync_synchronize();
+      return i;
+    }
+  }
+  return -1;
+}
+
+uint64
+sys_peterson_acquire(void)
+{
+  int lock_id;
+  int role;
+
+  argint(0, &lock_id);
+  argint(1, &role);
+
+  struct petersonlock *lock = &peterson_locks[lock_id];
+
+  __sync_lock_test_and_set(&lock->flag[role], 1);
+  __sync_synchronize();
+  lock->turn = 1 - role;
+  __sync_synchronize();
+
+  while (lock->flag[1 - role] && lock->turn == 1 - role) {
+    yield();
+  }
+
+  return 0;
+}
+
+uint64
+sys_peterson_release(void)
+{
+  int lock_id;
+  int role;
+
+  argint(0, &lock_id);
+  argint(1, &role);
+
+  struct petersonlock *lock = &peterson_locks[lock_id];
+
+  __sync_lock_release(&lock->flag[role]);
+  __sync_synchronize();
+
+  return 0;
+}
+
+uint64
+sys_peterson_destroy(void)
+{
+  int lock_id;
+
+  argint(0, &lock_id);
+
+  peterson_locks[lock_id].active = 0;
+  __sync_synchronize();
+
+  return 0;
+}
+
 
 uint64
 sys_exit(void)

@@ -3,6 +3,11 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
+#include "peterson.h"
+
+extern struct petersonlock peterson_locks[MAX_PETERSON_LOCKS];
+
+void petersoninit(void);
 
 volatile static int started = 0;
 
@@ -20,6 +25,7 @@ main()
     kvminit();       // create kernel page table
     kvminithart();   // turn on paging
     procinit();      // process table
+    petersoninit();
     trapinit();      // trap vectors
     trapinithart();  // install kernel trap vector
     plicinit();      // set up interrupt controller

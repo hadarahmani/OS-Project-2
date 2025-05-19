@@ -5,7 +5,7 @@
 
 // Tournament globals
 static int num_procs;
-static int proc_index;
+int proc_index;
 static int num_levels;
 static int locks[MAX_LOCKS];
 

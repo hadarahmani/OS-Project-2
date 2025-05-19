@@ -3,14 +3,13 @@
 #define MAX_PROCS 16
 #define MAX_LOCKS (MAX_PROCS - 1)
 
-// Tournament globals
+static int proc_index;
 static int num_procs;
-int proc_index;
 static int num_levels;
 static int locks[MAX_LOCKS];
 
 // Assigned role and lock at each level per process
-static int roles[4];      // Up to log2(16) = 4 levels
+static int roles[4];
 static int lock_idxs[4];
 
 int tournament_create(int n) {
@@ -21,7 +20,6 @@ int tournament_create(int n) {
   num_levels = 0;
   while ((1 << num_levels) < n) num_levels++;
 
-  // Create all required locks (n-1 locks in total)
   for (int i = 0; i < n - 1; i++) {
     int lid = peterson_create();
     if (lid < 0) return -1;
@@ -40,13 +38,20 @@ int tournament_create(int n) {
         roles[l] = role;
         lock_idxs[l] = arr_idx;
       }
-      return proc_index;
+
+      // Acquire tournament lock
+      if (tournament_acquire() == 0) {
+        // Safe to print here — only one process holds the lock
+        printf("Proc %d got lock as tournament ID %d\n", proc_index, i);
+        tournament_release();
+      }
+
+      exit(0);
     }
   }
-  // Only parent reaches here
+
   for (int i = 0; i < n; i++) wait(0);
   exit(0);
-  return -1; // not reached
 }
 
 int tournament_acquire(void) {

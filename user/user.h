@@ -1,4 +1,5 @@
 struct stat;
+struct spinlock;
 
 // system calls
 int fork(void);
@@ -28,6 +29,7 @@ int peterson_release(int lock_id, int role);
 int peterson_destroy(int lock_id);
 
 // ulib.c
+typedef unsigned int uint;
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
 void *memmove(void*, const void*, int);
@@ -43,3 +45,6 @@ void free(void*);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
+int tournament_create(int n);
+int tournament_acquire(void);
+int tournament_release(void);
